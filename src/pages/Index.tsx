@@ -1,11 +1,37 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, BarChart2, Mail, Users } from "lucide-react";
+import { ArrowRight, BarChart2, LogOut, Mail, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-bg">
       <div className="container mx-auto px-4 py-16">
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
+
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-primary-900 mb-6">
@@ -61,7 +87,10 @@ const Index = () => {
           <p className="text-gray-600 mb-8">
             Join thousands of businesses making smarter partnership decisions.
           </p>
-          <Button variant="outline" className="text-primary border-primary hover:bg-primary hover:text-white">
+          <Button
+            variant="outline"
+            className="text-primary border-primary hover:bg-primary hover:text-white"
+          >
             Learn More
           </Button>
         </div>
