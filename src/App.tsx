@@ -10,76 +10,87 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Partners from "./pages/Partners";
 
-const queryClient = new QueryClient();
+// Move queryClient inside the component to ensure it's created in the React context
+const App = () => {
+  // Create a client
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-    };
+    useEffect(() => {
+      const checkAuth = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+      };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed:", !!session);
-      setIsAuthenticated(!!session);
-    });
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        console.log("Auth state changed:", !!session);
+        setIsAuthenticated(!!session);
+      });
 
-    checkAuth();
+      checkAuth();
 
-    return () => subscription.unsubscribe();
-  }, []);
+      return () => subscription.unsubscribe();
+    }, []);
 
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-primary">Loading...</div>
-      </div>
-    );
-  }
+    if (isAuthenticated === null) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse text-primary">Loading...</div>
+        </div>
+      );
+    }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
-  }
+    if (!isAuthenticated) {
+      return <Navigate to="/auth" replace />;
+    }
 
-  return <>{children}</>;
+    return <>{children}</>;
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <div className="min-h-screen">
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route 
+                path="/auth" 
+                element={<Auth />} 
+              />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/partners"
+                element={
+                  <ProtectedRoute>
+                    <Partners />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </div>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
 };
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <div className="min-h-screen">
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route 
-              path="/auth" 
-              element={<Auth />} 
-            />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/partners"
-              element={
-                <ProtectedRoute>
-                  <Partners />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </div>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
 
 export default App;

@@ -20,6 +20,8 @@ interface CreatePartnerDialogProps {
   onSuccess: () => void;
 }
 
+type PartnerStatus = 'potential' | 'active' | 'inactive' | 'archived';
+
 export const CreatePartnerDialog = ({
   open,
   onOpenChange,
@@ -31,7 +33,7 @@ export const CreatePartnerDialog = ({
     company_name: "",
     website: "",
     industry: "",
-    status: "potential",
+    status: "potential" as PartnerStatus,
     priority_score: 0,
     description: "",
   });
@@ -41,9 +43,19 @@ export const CreatePartnerDialog = ({
     setLoading(true);
 
     try {
+      // Get the current user's ID
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user?.id) {
+        throw new Error("No authenticated user");
+      }
+
       const { error } = await supabase
         .from("partners")
-        .insert([formData]);
+        .insert({
+          ...formData,
+          user_id: session.user.id,
+        });
 
       if (error) throw error;
 
@@ -107,7 +119,7 @@ export const CreatePartnerDialog = ({
             <Label htmlFor="status">Status</Label>
             <Select
               value={formData.status}
-              onValueChange={(value) =>
+              onValueChange={(value: PartnerStatus) =>
                 setFormData({ ...formData, status: value })
               }
             >
