@@ -13,13 +13,20 @@ import { useState } from "react";
 import { EditPartnerDialog } from "./EditPartnerDialog";
 import { DeletePartnerDialog } from "./DeletePartnerDialog";
 
-interface Partner {
+export interface Partner {
   id: string;
   company_name: string;
   website: string | null;
   industry: string | null;
   status: 'potential' | 'active' | 'inactive' | 'archived';
   priority_score: number;
+  description?: string | null;
+  last_contact_date?: string | null;
+  next_follow_up_date?: string | null;
+  logo_url?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
 }
 
 interface PartnerListProps {

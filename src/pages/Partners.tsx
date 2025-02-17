@@ -9,6 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { PartnerList } from "@/components/partners/PartnerList";
 import { CreatePartnerDialog } from "@/components/partners/CreatePartnerDialog";
 
+// Define a type guard to validate partner status
+const isValidStatus = (status: string): status is 'potential' | 'active' | 'inactive' | 'archived' => {
+  return ['potential', 'active', 'inactive', 'archived'].includes(status);
+};
+
 export const Partners = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -30,7 +35,12 @@ export const Partners = () => {
         throw error;
       }
       
-      return data;
+      // Transform and validate the data
+      return data.map(partner => ({
+        ...partner,
+        status: isValidStatus(partner.status) ? partner.status : 'potential',
+        priority_score: Number(partner.priority_score) || 0
+      }));
     }
   });
 
