@@ -11,11 +11,13 @@ export type Database = {
     Tables: {
       partners: {
         Row: {
+          ai_analysis: Json | null
           company_name: string
           created_at: string
           description: string | null
           id: string
           industry: string | null
+          last_analysis_date: string | null
           last_contact_date: string | null
           logo_url: string | null
           next_follow_up_date: string | null
@@ -26,11 +28,13 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          ai_analysis?: Json | null
           company_name: string
           created_at?: string
           description?: string | null
           id?: string
           industry?: string | null
+          last_analysis_date?: string | null
           last_contact_date?: string | null
           logo_url?: string | null
           next_follow_up_date?: string | null
@@ -41,11 +45,13 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          ai_analysis?: Json | null
           company_name?: string
           created_at?: string
           description?: string | null
           id?: string
           industry?: string | null
+          last_analysis_date?: string | null
           last_contact_date?: string | null
           logo_url?: string | null
           next_follow_up_date?: string | null

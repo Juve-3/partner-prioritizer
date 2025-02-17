@@ -8,10 +8,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Brain } from "lucide-react";
 import { useState } from "react";
 import { EditPartnerDialog } from "./EditPartnerDialog";
 import { DeletePartnerDialog } from "./DeletePartnerDialog";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Partner {
   id: string;
@@ -27,6 +29,8 @@ export interface Partner {
   created_at?: string;
   updated_at?: string;
   user_id?: string;
+  ai_analysis?: any;
+  last_analysis_date?: string | null;
 }
 
 interface PartnerListProps {
@@ -37,6 +41,44 @@ interface PartnerListProps {
 export const PartnerList = ({ partners, onRefresh }: PartnerListProps) => {
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [deletingPartner, setDeletingPartner] = useState<Partner | null>(null);
+  const [analyzingPartnerId, setAnalyzingPartnerId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleAnalyzePartner = async (partner: Partner) => {
+    setAnalyzingPartnerId(partner.id);
+    
+    try {
+      // Call Supabase Edge Function for AI analysis
+      const { data, error } = await supabase.functions.invoke('analyze-partner', {
+        body: {
+          partnerId: partner.id,
+          companyName: partner.company_name,
+          website: partner.website,
+          industry: partner.industry,
+          description: partner.description,
+          status: partner.status
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Analysis Complete",
+        description: "Partner analysis has been updated successfully."
+      });
+
+      onRefresh(); // Refresh the list to show updated analysis
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      toast({
+        variant: "destructive",
+        title: "Analysis Failed",
+        description: error.message || "Failed to analyze partner data"
+      });
+    } finally {
+      setAnalyzingPartnerId(null);
+    }
+  };
 
   return (
     <>
@@ -48,13 +90,20 @@ export const PartnerList = ({ partners, onRefresh }: PartnerListProps) => {
             <TableHead>Status</TableHead>
             <TableHead>Priority Score</TableHead>
             <TableHead>Website</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead className="w-[150px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {partners.map((partner) => (
             <TableRow key={partner.id}>
-              <TableCell className="font-medium">{partner.company_name}</TableCell>
+              <TableCell className="font-medium">
+                {partner.company_name}
+                {partner.ai_analysis && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Last analyzed: {new Date(partner.last_analysis_date!).toLocaleDateString()}
+                  </div>
+                )}
+              </TableCell>
               <TableCell>{partner.industry || '-'}</TableCell>
               <TableCell>
                 <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
@@ -82,6 +131,14 @@ export const PartnerList = ({ partners, onRefresh }: PartnerListProps) => {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAnalyzePartner(partner)}
+                    disabled={analyzingPartnerId === partner.id}
+                  >
+                    <Brain className={`h-4 w-4 ${analyzingPartnerId === partner.id ? 'animate-pulse' : ''}`} />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
