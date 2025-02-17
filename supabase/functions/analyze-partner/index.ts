@@ -15,10 +15,10 @@ serve(async (req) => {
 
   try {
     const { partnerId, companyName, website, industry, description, status } = await req.json();
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!googleApiKey) {
+      throw new Error('Google API key not configured');
     }
 
     // Create Supabase client
@@ -28,44 +28,43 @@ serve(async (req) => {
     );
 
     // Prepare context for analysis
-    const context = `
+    const prompt = `
+      Please analyze this business partner information:
       Company Name: ${companyName}
       Website: ${website || 'Not provided'}
       Industry: ${industry || 'Not specified'}
       Current Status: ${status}
       Description: ${description || 'Not provided'}
+      
+      Provide insights about their potential value as a partner. Focus on their industry presence, growth potential, and alignment with business goals.
     `;
 
-    // Get AI analysis using fetch directly
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a business analyst. Analyze the following partner information and provide insights about their potential value as a partner. Focus on their industry presence, growth potential, and alignment with business goals.'
+    // Call Google's PaLM API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta3/models/text-bison-001:generateText?key=${googleApiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: {
+            text: prompt
           },
-          {
-            role: 'user',
-            content: context
-          }
-        ],
-      }),
-    });
+          temperature: 0.7,
+          candidate_count: 1,
+        }),
+      }
+    );
 
     const data = await response.json();
     
     if (!response.ok) {
-      console.error('OpenAI API error:', data);
+      console.error('Google PaLM API error:', data);
       throw new Error(data.error?.message || 'Failed to get AI analysis');
     }
 
-    const analysis = data.choices[0].message.content;
+    const analysis = data.candidates[0].output;
 
     // Update the partner record with the analysis
     const { error: updateError } = await supabaseClient
