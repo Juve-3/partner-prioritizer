@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 
 export const Compare = () => {
   const [selectedPartners, setSelectedPartners] = useState<Partner[]>([]);
+  const [comparisonResult, setComparisonResult] = useState<string | null>(null);
+  const [isComparing, setIsComparing] = useState(false);
   const { toast } = useToast();
 
   const { data: partners, isLoading } = useQuery({
@@ -23,6 +25,52 @@ export const Compare = () => {
       return data as Partner[];
     }
   });
+
+  const handleCompare = async () => {
+    if (selectedPartners.length < 2) {
+      toast({
+        title: "Not enough partners",
+        description: "Please select at least 2 partners to compare",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsComparing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-partner', {
+        body: {
+          action: 'compare',
+          partners: selectedPartners.map(p => ({
+            id: p.id,
+            companyName: p.company_name,
+            website: p.website,
+            industry: p.industry,
+            description: p.description,
+            status: p.status,
+            analysis: p.ai_analysis?.analysis
+          }))
+        }
+      });
+
+      if (error) throw error;
+
+      setComparisonResult(data.analysis);
+      toast({
+        title: "Comparison Complete",
+        description: "Partners have been analyzed and ranked"
+      });
+    } catch (error: any) {
+      console.error('Comparison error:', error);
+      toast({
+        variant: "destructive",
+        title: "Comparison Failed",
+        description: error.message || "Failed to compare partners"
+      });
+    } finally {
+      setIsComparing(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -86,13 +134,38 @@ export const Compare = () => {
               </Button>
             ))}
           </div>
+
+          {selectedPartners.length >= 2 && (
+            <div className="mt-6">
+              <Button 
+                onClick={handleCompare} 
+                disabled={isComparing}
+                className="w-full"
+              >
+                {isComparing ? "Comparing Partners..." : "Compare Selected Partners"}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {comparisonResult && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>AI Comparison Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm">
+              <p className="whitespace-pre-line">{comparisonResult}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {selectedPartners.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Comparison Results</CardTitle>
+            <CardTitle>Individual Analyses</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-6">
