@@ -1,3 +1,4 @@
 
+[functions]
 [functions.analyze-partner]
 verify_jwt = false
