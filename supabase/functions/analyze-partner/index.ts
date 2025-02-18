@@ -27,6 +27,11 @@ serve(async (req) => {
       const prompt = `
         Please analyze and compare these potential business partners, ranking them from most suitable to least suitable for partnership. Consider their industry presence, growth potential, and overall partnership value.
         
+        Important formatting instructions:
+        - Use "**text**" to make text bold
+        - Always make company names, rankings, and key findings bold
+        - Do not use asterisks (*) for bullet points, use dashes (-) instead
+        
         Partners to compare:
         ${body.partners.map((p: any) => `
         Company: ${p.companyName}
@@ -37,10 +42,12 @@ serve(async (req) => {
         `).join('\n')}
         
         Please provide:
-        1. A ranked list from most to least suitable partner
-        2. Brief justification for each ranking
-        3. Key strengths and potential concerns for each
-        4. Overall recommendation
+        1. A ranked list from most to least suitable partner with bold company names
+        2. Brief justification for each ranking, with key points in bold
+        3. Key strengths and potential concerns for each partner
+        4. Overall recommendation in bold
+        
+        Remember to use "**text**" for bold formatting, not single asterisks.
       `;
 
       const response = await fetch(
