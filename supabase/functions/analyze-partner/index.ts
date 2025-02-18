@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -40,7 +41,7 @@ serve(async (req) => {
         2. Brief justification for each ranking
         3. Key strengths and potential concerns for each
         4. Overall recommendation
-      `.trim());
+      `;
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${googleApiKey}`,
@@ -79,16 +80,9 @@ serve(async (req) => {
         }
       );
     } else {
-      const { partnerId, companyName, website, industry, description, status } = await req.json();
+      const { partnerId, companyName, website, industry, description, status } = body;
       console.log('Analyzing partner:', { partnerId, companyName });
 
-      // Create Supabase client
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      );
-
-      // Prepare context for analysis
       const prompt = `
         Please analyze this business partner information and provide a concise analysis:
         Company Name: ${companyName}
@@ -98,11 +92,8 @@ serve(async (req) => {
         Description: ${description || 'Not provided'}
         
         Focus on: 1) Industry presence 2) Growth potential 3) Partnership value
-      `.trim();
+      `;
 
-      console.log('Calling PaLM API with prompt');
-
-      // Call Google's PaLM API with the updated endpoint and model
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${googleApiKey}`,
         {
@@ -135,6 +126,12 @@ serve(async (req) => {
 
       const analysis = data.candidates[0].content.parts[0].text;
       console.log('Analysis generated successfully');
+
+      // Create Supabase client
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
 
       // Update the partner record with the analysis
       const { error: updateError } = await supabaseClient
