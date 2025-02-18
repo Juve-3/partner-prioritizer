@@ -44,20 +44,20 @@ serve(async (req) => {
 
     console.log('Calling PaLM API with prompt');
 
-    // Call Google's PaLM API
+    // Call Google's PaLM API with the updated endpoint and model
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta3/models/text-bison-001:generateText?key=${googleApiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${googleApiKey}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: {
-            text: prompt
-          },
-          temperature: 0.7,
-          candidate_count: 1,
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
         }),
       }
     );
@@ -66,16 +66,16 @@ serve(async (req) => {
     console.log('PaLM API response status:', response.status);
     
     if (!response.ok) {
-      console.error('Google PaLM API error:', data);
+      console.error('Google AI API error:', data);
       throw new Error(data.error?.message || 'Failed to get AI analysis');
     }
 
-    if (!data.candidates?.[0]?.output) {
-      console.error('Unexpected PaLM API response format:', data);
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.error('Unexpected API response format:', data);
       throw new Error('Invalid response from AI service');
     }
 
-    const analysis = data.candidates[0].output;
+    const analysis = data.candidates[0].content.parts[0].text;
     console.log('Analysis generated successfully');
 
     // Update the partner record with the analysis
@@ -120,7 +120,7 @@ serve(async (req) => {
           ...corsHeaders,
           'Content-Type': 'application/json'
         },
-        status: 500 // Changed from 400 to 500 for server errors
+        status: 500
       }
     );
   }
