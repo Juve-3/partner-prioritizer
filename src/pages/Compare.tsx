@@ -6,11 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Partner } from "@/components/partners/PartnerList";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export const Compare = () => {
   const [selectedPartners, setSelectedPartners] = useState<Partner[]>([]);
   const [comparisonResult, setComparisonResult] = useState<string | null>(null);
   const [isComparing, setIsComparing] = useState(false);
+  const [criteria, setCriteria] = useState<string>("balanced");
   const { toast } = useToast();
 
   const { data: partners, isLoading } = useQuery({
@@ -41,6 +44,7 @@ export const Compare = () => {
       const { data, error } = await supabase.functions.invoke('analyze-partner', {
         body: {
           action: 'compare',
+          criteria,
           partners: selectedPartners.map(p => ({
             id: p.id,
             companyName: p.company_name,
@@ -110,42 +114,63 @@ export const Compare = () => {
               : `${selectedPartners.length} partners selected`}
           </p>
           
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {partners.map(partner => (
-              <Button
-                key={partner.id}
-                variant={selectedPartners.some(p => p.id === partner.id) ? "default" : "outline"}
-                onClick={() => {
-                  if (selectedPartners.some(p => p.id === partner.id)) {
-                    setSelectedPartners(selectedPartners.filter(p => p.id !== partner.id));
-                  } else if (selectedPartners.length < 3) {
-                    setSelectedPartners([...selectedPartners, partner]);
-                  } else {
-                    toast({
-                      title: "Maximum partners reached",
-                      description: "You can only compare up to 3 partners at a time",
-                      variant: "destructive"
-                    });
-                  }
-                }}
-                className="w-full justify-start"
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label>Comparison Focus</Label>
+              <Select 
+                value={criteria} 
+                onValueChange={setCriteria}
               >
-                {partner.company_name}
-              </Button>
-            ))}
-          </div>
-
-          {selectedPartners.length >= 2 && (
-            <div className="mt-6">
-              <Button 
-                onClick={handleCompare} 
-                disabled={isComparing}
-                className="w-full"
-              >
-                {isComparing ? "Comparing Partners..." : "Compare Selected Partners"}
-              </Button>
+                <SelectTrigger className="w-full md:w-[300px]">
+                  <SelectValue placeholder="Select comparison criteria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="balanced">Balanced Evaluation</SelectItem>
+                  <SelectItem value="growth">Growth Potential</SelectItem>
+                  <SelectItem value="industry">Industry Presence</SelectItem>
+                  <SelectItem value="innovation">Innovation & Technology</SelectItem>
+                  <SelectItem value="financial">Financial Stability</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {partners.map(partner => (
+                <Button
+                  key={partner.id}
+                  variant={selectedPartners.some(p => p.id === partner.id) ? "default" : "outline"}
+                  onClick={() => {
+                    if (selectedPartners.some(p => p.id === partner.id)) {
+                      setSelectedPartners(selectedPartners.filter(p => p.id !== partner.id));
+                    } else if (selectedPartners.length < 3) {
+                      setSelectedPartners([...selectedPartners, partner]);
+                    } else {
+                      toast({
+                        title: "Maximum partners reached",
+                        description: "You can only compare up to 3 partners at a time",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                  className="w-full justify-start"
+                >
+                  {partner.company_name}
+                </Button>
+              ))}
+            </div>
+
+            {selectedPartners.length >= 2 && (
+              <div>
+                <Button 
+                  onClick={handleCompare} 
+                  disabled={isComparing}
+                  className="w-full"
+                >
+                  {isComparing ? "Comparing Partners..." : "Compare Selected Partners"}
+                </Button>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
