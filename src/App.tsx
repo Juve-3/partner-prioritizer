@@ -9,10 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Partners from "./pages/Partners";
+import Compare from "./pages/Compare";
+import { Navbar } from "./components/Navbar";
 
-// Move queryClient inside the component to ensure it's created in the React context
 const App = () => {
-  // Create a client
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -72,7 +72,10 @@ const App = () => {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <Index />
+                    <>
+                      <Navbar />
+                      <Index />
+                    </>
                   </ProtectedRoute>
                 }
               />
@@ -80,7 +83,21 @@ const App = () => {
                 path="/partners"
                 element={
                   <ProtectedRoute>
-                    <Partners />
+                    <>
+                      <Navbar />
+                      <Partners />
+                    </>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/compare"
+                element={
+                  <ProtectedRoute>
+                    <>
+                      <Navbar />
+                      <Compare />
+                    </>
                   </ProtectedRoute>
                 }
               />

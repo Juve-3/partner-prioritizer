@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -48,7 +47,6 @@ export const PartnerList = ({ partners, onRefresh }: PartnerListProps) => {
     setAnalyzingPartnerId(partner.id);
     
     try {
-      // Call Supabase Edge Function for AI analysis
       const { data, error } = await supabase.functions.invoke('analyze-partner', {
         body: {
           partnerId: partner.id,
@@ -67,7 +65,7 @@ export const PartnerList = ({ partners, onRefresh }: PartnerListProps) => {
         description: "Partner analysis has been updated successfully."
       });
 
-      onRefresh(); // Refresh the list to show updated analysis
+      onRefresh();
     } catch (error: any) {
       console.error('Analysis error:', error);
       toast({
@@ -97,10 +95,17 @@ export const PartnerList = ({ partners, onRefresh }: PartnerListProps) => {
           {partners.map((partner) => (
             <TableRow key={partner.id}>
               <TableCell className="font-medium">
-                {partner.company_name}
+                <div>
+                  {partner.company_name}
+                  {partner.ai_analysis && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Last analyzed: {new Date(partner.last_analysis_date!).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
                 {partner.ai_analysis && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Last analyzed: {new Date(partner.last_analysis_date!).toLocaleDateString()}
+                  <div className="mt-2 text-sm text-muted-foreground bg-muted p-2 rounded-md">
+                    {partner.ai_analysis.analysis}
                   </div>
                 )}
               </TableCell>
