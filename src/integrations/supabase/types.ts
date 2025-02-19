@@ -15,10 +15,13 @@ export type Database = {
           company_name: string
           created_at: string
           description: string | null
+          email: string | null
           id: string
           industry: string | null
+          instagram: string | null
           last_analysis_date: string | null
           last_contact_date: string | null
+          linkedin: string | null
           logo_url: string | null
           next_follow_up_date: string | null
           priority_score: number | null
@@ -26,16 +29,20 @@ export type Database = {
           updated_at: string
           user_id: string
           website: string | null
+          whatsapp: string | null
         }
         Insert: {
           ai_analysis?: Json | null
           company_name: string
           created_at?: string
           description?: string | null
+          email?: string | null
           id?: string
           industry?: string | null
+          instagram?: string | null
           last_analysis_date?: string | null
           last_contact_date?: string | null
+          linkedin?: string | null
           logo_url?: string | null
           next_follow_up_date?: string | null
           priority_score?: number | null
@@ -43,16 +50,20 @@ export type Database = {
           updated_at?: string
           user_id: string
           website?: string | null
+          whatsapp?: string | null
         }
         Update: {
           ai_analysis?: Json | null
           company_name?: string
           created_at?: string
           description?: string | null
+          email?: string | null
           id?: string
           industry?: string | null
+          instagram?: string | null
           last_analysis_date?: string | null
           last_contact_date?: string | null
+          linkedin?: string | null
           logo_url?: string | null
           next_follow_up_date?: string | null
           priority_score?: number | null
@@ -60,6 +71,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website?: string | null
+          whatsapp?: string | null
         }
         Relationships: [
           {

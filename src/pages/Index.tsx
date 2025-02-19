@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, BarChart2, LogOut, Mail, Users, Target, Building2, BrainCircuit } from "lucide-react";
@@ -7,11 +6,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { CreatePartnerDialog } from "@/components/partners/CreatePartnerDialog";
+import { SmartOutreachDialog } from "@/components/outreach/SmartOutreachDialog";
 
 const Index = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isOutreachDialogOpen, setIsOutreachDialogOpen] = useState(false);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -26,7 +27,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50">
-      {/* Navigation */}
       <nav className="border-b bg-white/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -47,7 +47,6 @@ const Index = () => {
       </nav>
 
       <main className="container mx-auto px-4 py-12">
-        {/* Hero Section */}
         <div className="text-center mb-16 max-w-4xl mx-auto">
           <h1 className="text-5xl font-bold text-primary-900 mb-6">
             Smart Partnership Management Platform
@@ -65,7 +64,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Main Features */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <Card className="glass-card p-8 hover:shadow-lg transition-shadow">
             <div className="mb-6">
@@ -118,19 +116,13 @@ const Index = () => {
             <Button 
               variant="ghost" 
               className="w-full"
-              onClick={() => {
-                toast({
-                  title: "Coming Soon",
-                  description: "The outreach feature will be available in a future update.",
-                });
-              }}
+              onClick={() => setIsOutreachDialogOpen(true)}
             >
               Start Outreach
             </Button>
           </Card>
         </div>
 
-        {/* Quick Actions */}
         <Card className="p-8 mb-16">
           <h2 className="text-2xl font-semibold mb-6">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -153,12 +145,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               className="h-auto py-4 flex flex-col gap-2"
-              onClick={() => {
-                toast({
-                  title: "Coming Soon",
-                  description: "The messaging feature will be available in a future update.",
-                });
-              }}
+              onClick={() => setIsOutreachDialogOpen(true)}
             >
               <Mail className="h-6 w-6" />
               <span>Messages</span>
@@ -174,7 +161,6 @@ const Index = () => {
           </div>
         </Card>
 
-        {/* Get Started Section */}
         <div className="text-center bg-primary-50 rounded-2xl p-12">
           <h2 className="text-3xl font-bold text-primary-900 mb-4">
             Ready to Optimize Your Partnerships?
@@ -201,6 +187,11 @@ const Index = () => {
               description: "Partner added successfully",
             });
           }}
+        />
+
+        <SmartOutreachDialog
+          open={isOutreachDialogOpen}
+          onOpenChange={setIsOutreachDialogOpen}
         />
       </main>
     </div>
