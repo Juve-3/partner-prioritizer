@@ -4,9 +4,14 @@ import { Card } from "@/components/ui/card";
 import { ArrowRight, BarChart2, LogOut, Mail, Users, Target, Building2, BrainCircuit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { CreatePartnerDialog } from "@/components/partners/CreatePartnerDialog";
 
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -50,11 +55,11 @@ const Index = () => {
           <p className="text-xl text-gray-600 mb-8">
             Use AI-powered analysis to identify, prioritize, and manage your most valuable business partnerships.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button size="lg" className="gap-2">
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Button size="lg" className="gap-2" onClick={() => setIsCreateDialogOpen(true)}>
               Add New Partner <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" className="gap-2">
+            <Button size="lg" variant="outline" className="gap-2" onClick={() => navigate('/partners')}>
               View Dashboard <BarChart2 className="h-5 w-5" />
             </Button>
           </div>
@@ -72,7 +77,13 @@ const Index = () => {
                 Create and maintain detailed profiles of potential and existing partners, track interactions, and store important documents.
               </p>
             </div>
-            <Button variant="ghost" className="w-full">View Partners</Button>
+            <Button 
+              variant="ghost" 
+              className="w-full"
+              onClick={() => navigate('/partners')}
+            >
+              View Partners
+            </Button>
           </Card>
 
           <Card className="glass-card p-8 hover:shadow-lg transition-shadow">
@@ -85,7 +96,13 @@ const Index = () => {
                 Get intelligent insights and partnership recommendations based on your business goals and partner data.
               </p>
             </div>
-            <Button variant="ghost" className="w-full">Run Analysis</Button>
+            <Button 
+              variant="ghost" 
+              className="w-full"
+              onClick={() => navigate('/compare')}
+            >
+              Run Analysis
+            </Button>
           </Card>
 
           <Card className="glass-card p-8 hover:shadow-lg transition-shadow">
@@ -98,7 +115,18 @@ const Index = () => {
                 Generate personalized outreach templates and manage communication with potential partners.
               </p>
             </div>
-            <Button variant="ghost" className="w-full">Start Outreach</Button>
+            <Button 
+              variant="ghost" 
+              className="w-full"
+              onClick={() => {
+                toast({
+                  title: "Coming Soon",
+                  description: "The outreach feature will be available in a future update.",
+                });
+              }}
+            >
+              Start Outreach
+            </Button>
           </Card>
         </div>
 
@@ -106,19 +134,40 @@ const Index = () => {
         <Card className="p-8 mb-16">
           <h2 className="text-2xl font-semibold mb-6">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-auto py-4 flex flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col gap-2"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
               <Users className="h-6 w-6" />
               <span>Add Partner</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col gap-2"
+              onClick={() => navigate('/compare')}
+            >
               <BarChart2 className="h-6 w-6" />
               <span>Analytics</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col gap-2"
+              onClick={() => {
+                toast({
+                  title: "Coming Soon",
+                  description: "The messaging feature will be available in a future update.",
+                });
+              }}
+            >
               <Mail className="h-6 w-6" />
               <span>Messages</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col gap-2"
+              onClick={() => navigate('/partners')}
+            >
               <Target className="h-6 w-6" />
               <span>Goals</span>
             </Button>
@@ -133,10 +182,26 @@ const Index = () => {
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
             Start adding your potential partners and let our AI help you make data-driven partnership decisions.
           </p>
-          <Button size="lg" className="gap-2">
+          <Button 
+            size="lg" 
+            className="gap-2"
+            onClick={() => setIsCreateDialogOpen(true)}
+          >
             Get Started Now <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
+
+        <CreatePartnerDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onSuccess={() => {
+            setIsCreateDialogOpen(false);
+            toast({
+              title: "Success",
+              description: "Partner added successfully",
+            });
+          }}
+        />
       </main>
     </div>
   );
