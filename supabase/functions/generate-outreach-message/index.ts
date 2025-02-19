@@ -15,29 +15,27 @@ serve(async (req) => {
   try {
     const { platform, prompt } = await req.json();
 
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('GOOGLE_API_KEY')}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert in business communication and outreach. Generate a professional ${platform} message that is appropriate for the platform's style and format. Keep the tone professional but conversational.`,
-          },
-          {
-            role: 'user',
-            content: `Generate a ${platform} outreach message with the following context: ${prompt}`,
-          },
-        ],
+        contents: [{
+          parts: [{
+            text: `You are an expert in business communication and outreach. Generate a professional ${platform} message that is appropriate for the platform's style and format. Keep the tone professional but conversational.
+
+Generate a ${platform} outreach message with the following context: ${prompt}`
+          }]
+        }]
       }),
     });
 
-    const data = await openAIResponse.json();
-    const message = data.choices[0].message.content;
+    const data = await response.json();
+    console.log('Gemini API Response:', data); // For debugging
+    
+    const message = data.candidates[0].content.parts[0].text;
 
     return new Response(
       JSON.stringify({ message }),
@@ -46,6 +44,7 @@ serve(async (req) => {
       },
     );
   } catch (error) {
+    console.error('Error in generate-outreach-message:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
