@@ -8,6 +8,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Function to clean and format the analysis text
+const formatAnalysisText = (text: string) => {
+  // Remove asterisks used for bold formatting
+  let cleanText = text.replace(/\*\*/g, '');
+  
+  // Split into paragraphs and clean up
+  const paragraphs = cleanText
+    .split('\n')
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+  
+  // Join paragraphs with proper spacing
+  return paragraphs.join('\n\n');
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -27,11 +42,6 @@ serve(async (req) => {
       const prompt = `
         Please analyze and compare these potential business partners, ranking them from most suitable to least suitable for partnership. Consider their industry presence, growth potential, and overall partnership value.
         
-        Important formatting instructions:
-        - Use "**text**" to make text bold
-        - Always make company names, rankings, and key findings bold
-        - Do not use asterisks (*) for bullet points, use dashes (-) instead
-        
         Partners to compare:
         ${body.partners.map((p: any) => `
         Company: ${p.companyName}
@@ -42,12 +52,12 @@ serve(async (req) => {
         `).join('\n')}
         
         Please provide:
-        1. A ranked list from most to least suitable partner with bold company names
-        2. Brief justification for each ranking, with key points in bold
+        1. A ranked list from most to least suitable partner
+        2. Brief justification for each ranking, focusing on key strengths
         3. Key strengths and potential concerns for each partner
-        4. Overall recommendation in bold
+        4. Overall recommendation
         
-        Remember to use "**text**" for bold formatting, not single asterisks.
+        Format the response in clear paragraphs with proper spacing. Do not use any special formatting characters.
       `;
 
       const response = await fetch(
@@ -62,7 +72,13 @@ serve(async (req) => {
               parts: [{
                 text: prompt
               }]
-            }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 1024,
+            }
           }),
         }
       );
@@ -74,10 +90,13 @@ serve(async (req) => {
         throw new Error(data.error?.message || 'Failed to get comparison analysis');
       }
 
+      const rawAnalysis = data.candidates[0].content.parts[0].text;
+      const formattedAnalysis = formatAnalysisText(rawAnalysis);
+
       return new Response(
         JSON.stringify({ 
           success: true,
-          analysis: data.candidates[0].content.parts[0].text
+          analysis: formattedAnalysis
         }),
         { 
           headers: { 
@@ -91,14 +110,21 @@ serve(async (req) => {
       console.log('Analyzing partner:', { partnerId, companyName });
 
       const prompt = `
-        Please analyze this business partner information and provide a concise analysis:
+        Analyze this business partner and provide a clear, professional assessment:
+        
         Company Name: ${companyName}
         Website: ${website || 'Not provided'}
         Industry: ${industry || 'Not specified'}
         Current Status: ${status}
         Description: ${description || 'Not provided'}
         
-        Focus on: 1) Industry presence 2) Growth potential 3) Partnership value
+        Please provide a comprehensive analysis covering:
+        1. Industry presence and market position
+        2. Growth potential and opportunities
+        3. Partnership value and strategic fit
+        
+        Format the response in clear paragraphs with proper spacing. Focus on being concise and insightful.
+        Do not use any special formatting characters or symbols.
       `;
 
       const response = await fetch(
@@ -113,26 +139,28 @@ serve(async (req) => {
               parts: [{
                 text: prompt
               }]
-            }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 1024,
+            }
           }),
         }
       );
 
-      const data = await response.json();
-      console.log('PaLM API response status:', response.status);
-      
       if (!response.ok) {
-        console.error('Google AI API error:', data);
-        throw new Error(data.error?.message || 'Failed to get AI analysis');
+        const errorData = await response.text();
+        console.error('Gemini API error response:', errorData);
+        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
       }
 
-      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        console.error('Unexpected API response format:', data);
-        throw new Error('Invalid response from AI service');
-      }
+      const data = await response.json();
+      console.log('Gemini API Response:', JSON.stringify(data, null, 2));
 
-      const analysis = data.candidates[0].content.parts[0].text;
-      console.log('Analysis generated successfully');
+      const rawAnalysis = data.candidates[0].content.parts[0].text;
+      const formattedAnalysis = formatAnalysisText(rawAnalysis);
 
       // Create Supabase client
       const supabaseClient = createClient(
@@ -144,7 +172,7 @@ serve(async (req) => {
       const { error: updateError } = await supabaseClient
         .from('partners')
         .update({
-          ai_analysis: { analysis },
+          ai_analysis: { analysis: formattedAnalysis },
           last_analysis_date: new Date().toISOString()
         })
         .eq('id', partnerId);
@@ -159,7 +187,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true,
-          analysis 
+          analysis: formattedAnalysis 
         }),
         { 
           headers: { 
