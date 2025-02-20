@@ -25,7 +25,6 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${googleApiKey}`,
       },
       body: JSON.stringify({
         contents: [{
@@ -82,7 +81,7 @@ Important guidelines:
       throw new Error('Invalid response format from Gemini API');
     }
 
-    const message = data.candidates[0].content.parts[0].text;
+    const message = data.candidates[0].content.parts[0].text.trim();
 
     return new Response(
       JSON.stringify({ message }),
