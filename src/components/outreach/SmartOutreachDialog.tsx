@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Copy, CheckCircle } from "lucide-react";
 
 interface SmartOutreachDialogProps {
   open: boolean;
@@ -30,6 +30,7 @@ export const SmartOutreachDialog = ({
   const [platform, setPlatform] = useState<Platform>('email');
   const [prompt, setPrompt] = useState('');
   const [generatedMessage, setGeneratedMessage] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const handleGenerateMessage = async () => {
     setLoading(true);
@@ -45,18 +46,40 @@ export const SmartOutreachDialog = ({
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to generate message');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Failed to generate message');
+      }
 
       const data = await response.json();
       setGeneratedMessage(data.message);
     } catch (error) {
+      console.error('Error generating message:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to generate message. Please try again.",
+        description: error.message || "Failed to generate message. Please try again.",
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedMessage);
+      setCopied(true);
+      toast({
+        title: "Copied!",
+        description: "Message copied to clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to copy message",
+      });
     }
   };
 
@@ -122,16 +145,20 @@ export const SmartOutreachDialog = ({
               />
               <Button
                 variant="outline"
-                onClick={() => {
-                  navigator.clipboard.writeText(generatedMessage);
-                  toast({
-                    title: "Copied!",
-                    description: "Message copied to clipboard",
-                  });
-                }}
-                className="w-full"
+                onClick={handleCopy}
+                className="w-full gap-2"
               >
-                Copy to Clipboard
+                {copied ? (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    Copy to Clipboard
+                  </>
+                )}
               </Button>
             </div>
           )}
