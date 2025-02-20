@@ -14,27 +14,74 @@ serve(async (req) => {
 
   try {
     const { platform, prompt } = await req.json();
+    console.log('Received request:', { platform, prompt });
+
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+    if (!googleApiKey) {
+      throw new Error('Google API key is not configured');
+    }
 
     const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('GOOGLE_API_KEY')}`,
+        'Authorization': `Bearer ${googleApiKey}`,
       },
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are an expert in business communication and outreach. Generate a professional ${platform} message that is appropriate for the platform's style and format. Keep the tone professional but conversational.
+            text: `As an expert in business communication and outreach, write a professional ${platform} message. The message should be appropriate for ${platform}'s style and format, maintaining a professional yet conversational tone.
 
-Generate a ${platform} outreach message with the following context: ${prompt}`
+Context and goal for the message: ${prompt}
+
+Important guidelines:
+- Keep it concise and platform-appropriate
+- Be professional but friendly
+- Include a clear call to action
+- Maintain a natural conversational flow`
           }]
-        }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
       }),
     });
 
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Gemini API error response:', errorData);
+      throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+    }
+
     const data = await response.json();
-    console.log('Gemini API Response:', data); // For debugging
-    
+    console.log('Gemini API Response:', JSON.stringify(data, null, 2));
+
+    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+      console.error('Unexpected Gemini API response structure:', data);
+      throw new Error('Invalid response format from Gemini API');
+    }
+
     const message = data.candidates[0].content.parts[0].text;
 
     return new Response(
@@ -46,7 +93,10 @@ Generate a ${platform} outreach message with the following context: ${prompt}`
   } catch (error) {
     console.error('Error in generate-outreach-message:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: 'Failed to generate message',
+        details: error.message 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
