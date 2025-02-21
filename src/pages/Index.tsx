@@ -10,6 +10,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FeatureCards } from "@/components/landing/FeatureCards";
 import { QuickActions } from "@/components/landing/QuickActions";
 import { CallToAction } from "@/components/landing/CallToAction";
+import { Footer } from "@/components/landing/Footer";
 
 const Index = () => {
   const { toast } = useToast();
@@ -57,13 +58,13 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary-50 via-white to-primary-50">
       <Navigation 
         isAuthenticated={isAuthenticated}
         onLogout={handleLogout}
       />
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 flex-grow">
         <HeroSection 
           onAddPartner={() => handleAuthenticatedAction(() => setIsCreateDialogOpen(true))}
           onViewDashboard={() => handleAuthenticatedAction(() => navigate('/partners'))}
@@ -103,6 +104,8 @@ const Index = () => {
           onOpenChange={setIsOutreachDialogOpen}
         />
       </main>
+
+      <Footer />
     </div>
   );
 };
