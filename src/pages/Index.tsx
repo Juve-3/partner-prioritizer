@@ -1,10 +1,11 @@
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, BarChart2, LogOut, Mail, Users, Target, Building2, BrainCircuit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreatePartnerDialog } from "@/components/partners/CreatePartnerDialog";
 import { SmartOutreachDialog } from "@/components/outreach/SmartOutreachDialog";
 
@@ -13,6 +14,22 @@ const Index = () => {
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isOutreachDialogOpen, setIsOutreachDialogOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsAuthenticated(!!session);
+      });
+
+      return () => subscription.unsubscribe();
+    };
+
+    checkAuth();
+  }, []);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -25,6 +42,18 @@ const Index = () => {
     }
   };
 
+  const handleAuthenticatedAction = (action: () => void) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to access this feature",
+      });
+      navigate('/auth');
+      return;
+    }
+    action();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50">
       <nav className="border-b bg-white/50 backdrop-blur-sm">
@@ -34,14 +63,24 @@ const Index = () => {
               <Target className="h-6 w-6 text-primary" />
               <span className="font-bold text-xl text-primary">PartnerPriority</span>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => navigate('/auth')}
+                className="gap-2"
+              >
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </nav>
@@ -55,10 +94,19 @@ const Index = () => {
             Use AI-powered analysis to identify, prioritize, and manage your most valuable business partnerships.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg" className="gap-2" onClick={() => setIsCreateDialogOpen(true)}>
+            <Button 
+              size="lg" 
+              className="gap-2" 
+              onClick={() => handleAuthenticatedAction(() => setIsCreateDialogOpen(true))}
+            >
               Add New Partner <ArrowRight className="h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" className="gap-2" onClick={() => navigate('/partners')}>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="gap-2" 
+              onClick={() => handleAuthenticatedAction(() => navigate('/partners'))}
+            >
               View Dashboard <BarChart2 className="h-5 w-5" />
             </Button>
           </div>
@@ -78,7 +126,7 @@ const Index = () => {
             <Button 
               variant="ghost" 
               className="w-full"
-              onClick={() => navigate('/partners')}
+              onClick={() => handleAuthenticatedAction(() => navigate('/partners'))}
             >
               View Partners
             </Button>
@@ -97,7 +145,7 @@ const Index = () => {
             <Button 
               variant="ghost" 
               className="w-full"
-              onClick={() => navigate('/compare')}
+              onClick={() => handleAuthenticatedAction(() => navigate('/compare'))}
             >
               Run Analysis
             </Button>
@@ -116,7 +164,7 @@ const Index = () => {
             <Button 
               variant="ghost" 
               className="w-full"
-              onClick={() => setIsOutreachDialogOpen(true)}
+              onClick={() => handleAuthenticatedAction(() => setIsOutreachDialogOpen(true))}
             >
               Start Outreach
             </Button>
@@ -129,7 +177,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               className="h-auto py-4 flex flex-col gap-2"
-              onClick={() => setIsCreateDialogOpen(true)}
+              onClick={() => handleAuthenticatedAction(() => setIsCreateDialogOpen(true))}
             >
               <Users className="h-6 w-6" />
               <span>Add Partner</span>
@@ -137,7 +185,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               className="h-auto py-4 flex flex-col gap-2"
-              onClick={() => navigate('/compare')}
+              onClick={() => handleAuthenticatedAction(() => navigate('/compare'))}
             >
               <BarChart2 className="h-6 w-6" />
               <span>Analytics</span>
@@ -145,7 +193,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               className="h-auto py-4 flex flex-col gap-2"
-              onClick={() => setIsOutreachDialogOpen(true)}
+              onClick={() => handleAuthenticatedAction(() => setIsOutreachDialogOpen(true))}
             >
               <Mail className="h-6 w-6" />
               <span>Messages</span>
@@ -153,7 +201,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               className="h-auto py-4 flex flex-col gap-2"
-              onClick={() => navigate('/partners')}
+              onClick={() => handleAuthenticatedAction(() => navigate('/partners'))}
             >
               <Target className="h-6 w-6" />
               <span>Goals</span>
@@ -171,7 +219,7 @@ const Index = () => {
           <Button 
             size="lg" 
             className="gap-2"
-            onClick={() => setIsCreateDialogOpen(true)}
+            onClick={() => handleAuthenticatedAction(() => setIsCreateDialogOpen(true))}
           >
             Get Started Now <ArrowRight className="h-5 w-5" />
           </Button>
