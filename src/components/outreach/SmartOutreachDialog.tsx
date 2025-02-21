@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Copy, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SmartOutreachDialogProps {
   open: boolean;
@@ -35,24 +36,22 @@ export const SmartOutreachDialog = ({
   const handleGenerateMessage = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/functions/v1/generate-outreach-message', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('generate-outreach-message', {
+        body: {
           platform,
           prompt,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.details || 'Failed to generate message');
+      if (error) {
+        throw new Error(error.message);
       }
 
-      const data = await response.json();
-      setGeneratedMessage(data.message);
+      if (data?.message) {
+        setGeneratedMessage(data.message);
+      } else {
+        throw new Error('No message generated');
+      }
     } catch (error) {
       console.error('Error generating message:', error);
       toast({
