@@ -27,15 +27,15 @@ const Auth = () => {
         
         if (session) {
           // Check if user has completed their profile
-          const { data: profile, error: profileError } = await supabase
+          const { data, error: profileError } = await supabase
             .from('profiles')
-            .select('profile_completed')
+            .select('*') // Select all columns to avoid field not found errors
             .eq('id', session.user.id)
             .single();
           
           if (profileError) throw profileError;
           
-          if (profile?.profile_completed) {
+          if (data?.profile_completed) {
             navigate("/");
           } else {
             navigate("/onboarding");
@@ -60,9 +60,9 @@ const Auth = () => {
         
         if (event === "SIGNED_IN" && session) {
           // Check if user has completed their profile
-          const { data: profile, error: profileError } = await supabase
+          const { data, error: profileError } = await supabase
             .from('profiles')
-            .select('profile_completed')
+            .select('*') // Select all columns to avoid field not found errors
             .eq('id', session.user.id)
             .single();
           
@@ -70,7 +70,7 @@ const Auth = () => {
             console.error("Profile error:", profileError);
           }
           
-          if (profile?.profile_completed) {
+          if (data?.profile_completed) {
             navigate("/");
           } else {
             navigate("/onboarding");

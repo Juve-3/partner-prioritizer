@@ -85,22 +85,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          business_description: string | null
+          business_email: string | null
+          business_field: string | null
+          business_name: string | null
           id: string
           last_login_date: string
+          profile_completed: boolean | null
           sign_up_date: string
           updated_at: string
           username: string
         }
         Insert: {
+          business_description?: string | null
+          business_email?: string | null
+          business_field?: string | null
+          business_name?: string | null
           id: string
           last_login_date?: string
+          profile_completed?: boolean | null
           sign_up_date?: string
           updated_at?: string
           username: string
         }
         Update: {
+          business_description?: string | null
+          business_email?: string | null
+          business_field?: string | null
+          business_name?: string | null
           id?: string
           last_login_date?: string
+          profile_completed?: boolean | null
           sign_up_date?: string
           updated_at?: string
           username?: string
