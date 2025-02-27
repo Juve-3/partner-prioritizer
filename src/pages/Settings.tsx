@@ -78,10 +78,10 @@ const Settings = () => {
         if (profileError) throw profileError;
 
         setProfileData({
-          business_name: profileData.business_name || "",
-          business_email: profileData.business_email || "",
-          business_field: profileData.business_field || "",
-          business_description: profileData.business_description || "",
+          business_name: (profileData as any).business_name || "",
+          business_email: (profileData as any).business_email || "",
+          business_field: (profileData as any).business_field || "",
+          business_description: (profileData as any).business_description || "",
           username: profileData.username || "",
           email: userEmail || ""
         });

@@ -30,7 +30,7 @@ const OnboardingFlow = () => {
         if (error) throw error;
 
         // If profile is already completed, redirect to home
-        if (data?.profile_completed) {
+        if ((data as any)?.profile_completed) {
           navigate("/");
         }
       } catch (error: any) {

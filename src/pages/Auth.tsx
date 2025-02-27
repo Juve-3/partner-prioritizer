@@ -35,7 +35,7 @@ const Auth = () => {
           
           if (profileError) throw profileError;
           
-          if (data?.profile_completed) {
+          if ((data as any)?.profile_completed) {
             navigate("/");
           } else {
             navigate("/onboarding");
@@ -70,7 +70,7 @@ const Auth = () => {
             console.error("Profile error:", profileError);
           }
           
-          if (data?.profile_completed) {
+          if ((data as any)?.profile_completed) {
             navigate("/");
           } else {
             navigate("/onboarding");

@@ -82,7 +82,7 @@ export const BusinessProfileForm = ({ onSkip }: { onSkip?: () => void }) => {
           business_field: formData.business_field,
           business_description: formData.business_description,
           profile_completed: true
-        } as any) // Using type assertion here to bypass TypeScript checks
+        } as any) // Type assertion to bypass TypeScript checks
         .eq('id', session.user.id);
 
       if (error) throw error;
