@@ -26,7 +26,20 @@ const Auth = () => {
         if (error) throw error;
         
         if (session) {
-          navigate("/");
+          // Check if user has completed their profile
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('profile_completed')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError) throw profileError;
+          
+          if (profile?.profile_completed) {
+            navigate("/");
+          } else {
+            navigate("/onboarding");
+          }
         }
       } catch (error) {
         console.error("Auth error:", error);
@@ -46,7 +59,22 @@ const Auth = () => {
         console.log("Auth event:", event);
         
         if (event === "SIGNED_IN" && session) {
-          navigate("/");
+          // Check if user has completed their profile
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('profile_completed')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError) {
+            console.error("Profile error:", profileError);
+          }
+          
+          if (profile?.profile_completed) {
+            navigate("/");
+          } else {
+            navigate("/onboarding");
+          }
         }
         
         if (event === "SIGNED_OUT") {

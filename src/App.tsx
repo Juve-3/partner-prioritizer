@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Partners from "./pages/Partners";
 import Compare from "./pages/Compare";
+import Settings from "./pages/Settings";
+import OnboardingFlow from "./pages/OnboardingFlow";
 import { Navbar } from "./components/Navbar";
 
 const App = () => {
@@ -67,6 +69,14 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<Index />} />
               <Route
+                path="/onboarding"
+                element={
+                  <ProtectedRoute>
+                    <OnboardingFlow />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/partners"
                 element={
                   <ProtectedRoute>
@@ -85,6 +95,14 @@ const App = () => {
                       <Navbar />
                       <Compare />
                     </>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 }
               />
