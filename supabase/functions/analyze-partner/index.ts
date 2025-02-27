@@ -38,9 +38,19 @@ serve(async (req) => {
 
     if (body.action === 'compare') {
       console.log('Comparing partners:', body.partners.map((p: any) => p.companyName));
+      console.log('Business context:', body.businessContext);
 
+      // Build a more detailed prompt that includes business context
+      const businessContext = body.businessContext || {};
       const prompt = `
-        Please analyze and compare these potential business partners, ranking them from most suitable to least suitable for partnership. Consider their industry presence, growth potential, and overall partnership value.
+        Please analyze and compare these potential business partners, ranking them from most suitable to least suitable for partnership with my business. Consider their industry presence, growth potential, and overall partnership value.
+        
+        My business context:
+        ${businessContext.name ? `Business Name: ${businessContext.name}` : ''}
+        ${businessContext.field ? `Business Field: ${businessContext.field}` : ''}
+        ${businessContext.description ? `Business Description: ${businessContext.description}` : ''}
+        
+        Comparison criteria focus: ${body.criteria || 'balanced'}
         
         Partners to compare:
         ${body.partners.map((p: any) => `
@@ -52,10 +62,10 @@ serve(async (req) => {
         `).join('\n')}
         
         Please provide:
-        1. A ranked list from most to least suitable partner
-        2. Brief justification for each ranking, focusing on key strengths
-        3. Key strengths and potential concerns for each partner
-        4. Overall recommendation
+        1. A ranked list from most to least suitable partner specifically for my business
+        2. Brief justification for each ranking, focusing on compatibility with my business
+        3. Key strengths, potential concerns, and strategic fit for each partner in relation to my business
+        4. Overall recommendation for which partner would be most beneficial to establish or strengthen a relationship with
         
         Format the response in clear paragraphs with proper spacing. Do not use any special formatting characters.
       `;

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,43 @@ export const Compare = () => {
   const [comparisonResult, setComparisonResult] = useState<string | null>(null);
   const [isComparing, setIsComparing] = useState(false);
   const [criteria, setCriteria] = useState<string>("balanced");
+  const [businessProfile, setBusinessProfile] = useState<{
+    business_name?: string;
+    business_field?: string;
+    business_description?: string;
+  }>({});
   const { toast } = useToast();
+
+  // Fetch user's business profile information
+  useEffect(() => {
+    const fetchBusinessProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.user) {
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) throw error;
+
+        setBusinessProfile({
+          business_name: (data as any).business_name || "",
+          business_field: (data as any).business_field || "",
+          business_description: (data as any).business_description || ""
+        });
+      } catch (error) {
+        console.error("Error fetching business profile:", error);
+      }
+    };
+
+    fetchBusinessProfile();
+  }, []);
 
   const { data: partners, isLoading } = useQuery({
     queryKey: ['partners'],
@@ -45,6 +81,11 @@ export const Compare = () => {
         body: {
           action: 'compare',
           criteria,
+          businessContext: {
+            name: businessProfile.business_name,
+            field: businessProfile.business_field,
+            description: businessProfile.business_description
+          },
           partners: selectedPartners.map(p => ({
             id: p.id,
             companyName: p.company_name,
@@ -62,7 +103,7 @@ export const Compare = () => {
       setComparisonResult(data.analysis);
       toast({
         title: "Comparison Complete",
-        description: "Partners have been analyzed and ranked"
+        description: "Partners have been analyzed and ranked based on your business context"
       });
     } catch (error: any) {
       console.error('Comparison error:', error);
