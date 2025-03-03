@@ -5,6 +5,7 @@ import { Partner } from "@/components/partners/PartnerList";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { ComparisonChart } from "./ComparisonChart";
 
 interface ComparisonResultsProps {
   comparisonResult: string | null;
@@ -58,6 +59,7 @@ export const ComparisonResults = ({
       const { error } = await supabase
         .from('comparison_results')
         .insert({
+          user_id: sessionData.session.user.id,
           criteria,
           partners: partnersData,
           result: comparisonResult
@@ -88,23 +90,27 @@ export const ComparisonResults = ({
   return (
     <>
       {comparisonResult && (
-        <Card className="mb-8">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>AI Comparison Analysis</CardTitle>
-            <Button 
-              onClick={handleSaveComparison} 
-              disabled={isSaving || !comparisonResult}
-              size="sm"
-            >
-              {isSaving ? "Saving..." : "Save Comparison"}
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="prose prose-sm">
-              <p className="whitespace-pre-line">{comparisonResult}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <>
+          <ComparisonChart selectedPartners={selectedPartners} />
+          
+          <Card className="mb-8">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>AI Comparison Analysis</CardTitle>
+              <Button 
+                onClick={handleSaveComparison} 
+                disabled={isSaving || !comparisonResult}
+                size="sm"
+              >
+                {isSaving ? "Saving..." : "Save Comparison"}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-sm">
+                <p className="whitespace-pre-line">{comparisonResult}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </>
       )}
 
       {selectedPartners.length > 0 && (
