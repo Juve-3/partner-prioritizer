@@ -76,3 +76,31 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Custom scrollbar class for left-aligned scrollbar */
+.scrollbar-left {
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  padding-left: 8px;
+  margin-left: -8px;
+}
+
+.scrollbar-left::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-left::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.scrollbar-left::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.scrollbar-left::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

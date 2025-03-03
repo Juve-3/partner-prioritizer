@@ -106,8 +106,8 @@ export const BusinessProfileForm = ({ onSkip }: { onSkip?: () => void }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-muted">
-      <Card className="w-full max-w-md p-6 md:p-8">
-        <div className="space-y-6">
+      <Card className="w-full max-w-md p-6 md:p-8 max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="space-y-6 overflow-y-auto pr-6 scrollbar-left">
           <div className="text-center">
             <h1 className="text-2xl font-bold">Tell us about your business</h1>
             <p className="text-muted-foreground mt-2">

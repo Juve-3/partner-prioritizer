@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ interface Partner {
   industry: string | null;
   status: 'potential' | 'active' | 'inactive' | 'archived';
   priority_score: number;
+  description?: string;
 }
 
 interface EditPartnerDialogProps {
@@ -44,6 +46,7 @@ export const EditPartnerDialog = ({
     industry: "",
     status: "potential",
     priority_score: 0,
+    description: "",
   });
 
   useEffect(() => {
@@ -54,6 +57,7 @@ export const EditPartnerDialog = ({
         industry: partner.industry || "",
         status: partner.status,
         priority_score: partner.priority_score,
+        description: partner.description || "",
       });
     }
   }, [partner]);
@@ -93,91 +97,104 @@ export const EditPartnerDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Edit Partner</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="company_name">Company Name *</Label>
-            <Input
-              id="company_name"
-              required
-              value={formData.company_name}
-              onChange={(e) =>
-                setFormData({ ...formData, company_name: e.target.value })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="website">Website</Label>
-            <Input
-              id="website"
-              type="url"
-              value={formData.website || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, website: e.target.value })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="industry">Industry</Label>
-            <Input
-              id="industry"
-              value={formData.industry || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, industry: e.target.value })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={formData.status}
-              onValueChange={(value: 'potential' | 'active' | 'inactive' | 'archived') =>
-                setFormData({ ...formData, status: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="potential">Potential</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="priority_score">Priority Score</Label>
-            <Input
-              id="priority_score"
-              type="number"
-              min="0"
-              max="100"
-              value={formData.priority_score}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  priority_score: parseInt(e.target.value) || 0,
-                })
-              }
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </form>
+        <div className="overflow-y-auto pr-6 scrollbar-left">
+          <form onSubmit={handleSubmit} className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="company_name">Company Name *</Label>
+              <Input
+                id="company_name"
+                required
+                value={formData.company_name}
+                onChange={(e) =>
+                  setFormData({ ...formData, company_name: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                type="url"
+                value={formData.website || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, website: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="industry">Industry</Label>
+              <Input
+                id="industry"
+                value={formData.industry || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, industry: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value: 'potential' | 'active' | 'inactive' | 'archived') =>
+                  setFormData({ ...formData, status: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="potential">Potential</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="priority_score">Priority Score</Label>
+              <Input
+                id="priority_score"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.priority_score}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    priority_score: parseInt(e.target.value) || 0,
+                  })
+                }
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
