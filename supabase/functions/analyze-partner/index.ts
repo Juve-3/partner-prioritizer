@@ -24,6 +24,7 @@ const formatAnalysisText = (text: string) => {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -35,6 +36,8 @@ serve(async (req) => {
     if (!googleApiKey) {
       throw new Error('Google API key not configured');
     }
+
+    console.log('Request received:', JSON.stringify(body, null, 2));
 
     if (body.action === 'compare') {
       console.log('Comparing partners:', body.partners.map((p: any) => p.companyName));
@@ -70,6 +73,8 @@ serve(async (req) => {
         Format the response in clear paragraphs with proper spacing. Do not use any special formatting characters.
       `;
 
+      console.log('Sending prompt to Gemini API:', prompt);
+
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${googleApiKey}`,
         {
@@ -93,15 +98,26 @@ serve(async (req) => {
         }
       );
 
-      const data = await response.json();
+      console.log('Gemini API status:', response.status);
       
       if (!response.ok) {
-        console.error('Google AI API error:', data);
-        throw new Error(data.error?.message || 'Failed to get comparison analysis');
+        const errorData = await response.text();
+        console.error('Gemini API error response:', errorData);
+        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Gemini API response structure:', Object.keys(data));
+      
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        console.error('Unexpected Gemini API response structure:', JSON.stringify(data, null, 2));
+        throw new Error('Invalid response format from Gemini API');
       }
 
       const rawAnalysis = data.candidates[0].content.parts[0].text;
       const formattedAnalysis = formatAnalysisText(rawAnalysis);
+
+      console.log('Analysis generated successfully');
 
       return new Response(
         JSON.stringify({ 
@@ -112,7 +128,8 @@ serve(async (req) => {
           headers: { 
             ...corsHeaders,
             'Content-Type': 'application/json'
-          }
+          },
+          status: 200
         }
       );
     } else {
@@ -168,6 +185,11 @@ serve(async (req) => {
 
       const data = await response.json();
       console.log('Gemini API Response:', JSON.stringify(data, null, 2));
+
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        console.error('Unexpected Gemini API response structure:', JSON.stringify(data, null, 2));
+        throw new Error('Invalid response format from Gemini API');
+      }
 
       const rawAnalysis = data.candidates[0].content.parts[0].text;
       const formattedAnalysis = formatAnalysisText(rawAnalysis);
