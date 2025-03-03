@@ -39,7 +39,9 @@ export const ComparisonResults = ({
 
     setIsSaving(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      
       if (!sessionData.session) {
         toast({
           title: "Authentication required",
