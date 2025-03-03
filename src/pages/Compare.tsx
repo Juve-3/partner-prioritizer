@@ -17,7 +17,7 @@ export const Compare = () => {
   const { businessProfile } = useBusinessProfile();
   const { toast } = useToast();
 
-  const { data: partners, isLoading } = useQuery({
+  const { data: partners, isLoading, refetch } = useQuery({
     queryKey: ['partners'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -82,6 +82,11 @@ export const Compare = () => {
     }
   };
 
+  const handleSaveSuccess = () => {
+    // Optionally perform actions after successful save
+    refetch();
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -122,6 +127,8 @@ export const Compare = () => {
       <ComparisonResults
         comparisonResult={comparisonResult}
         selectedPartners={selectedPartners}
+        criteria={criteria}
+        onSaveSuccess={handleSaveSuccess}
       />
     </div>
   );

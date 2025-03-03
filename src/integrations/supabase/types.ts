@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      comparison_results: {
+        Row: {
+          comparison_date: string
+          created_at: string
+          criteria: string
+          id: string
+          partners: Json
+          result: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comparison_date?: string
+          created_at?: string
+          criteria: string
+          id?: string
+          partners: Json
+          result: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comparison_date?: string
+          created_at?: string
+          criteria?: string
+          id?: string
+          partners?: Json
+          result?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comparison_results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           ai_analysis: Json | null
