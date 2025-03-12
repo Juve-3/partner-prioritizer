@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Partner } from "@/components/partners/PartnerList";
+import { Partner } from "@/components/partners/types";
 import {
   Bar,
   BarChart,
