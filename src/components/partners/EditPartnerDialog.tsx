@@ -1,19 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { PartnerFormFields } from "./PartnerFormFields";
+import { PartnerDescriptionField } from "./PartnerDescriptionField";
+import { ContactInfoFields } from "./ContactInfoFields";
+import { PartnerFormActions } from "./PartnerFormActions";
+import { type PartnerFormData } from "./types";
 
 interface Partner {
   id: string;
@@ -23,6 +17,10 @@ interface Partner {
   status: 'potential' | 'active' | 'inactive' | 'archived';
   priority_score: number;
   description?: string;
+  email?: string;
+  linkedin?: string;
+  instagram?: string;
+  whatsapp?: string;
 }
 
 interface EditPartnerDialogProps {
@@ -40,13 +38,17 @@ export const EditPartnerDialog = ({
 }: EditPartnerDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<Omit<Partner, 'id'>>({
+  const [formData, setFormData] = useState<PartnerFormData>({
     company_name: "",
     website: "",
     industry: "",
     status: "potential",
     priority_score: 0,
     description: "",
+    email: "",
+    linkedin: "",
+    instagram: "",
+    whatsapp: "",
   });
 
   useEffect(() => {
@@ -58,6 +60,10 @@ export const EditPartnerDialog = ({
         status: partner.status,
         priority_score: partner.priority_score,
         description: partner.description || "",
+        email: partner.email || "",
+        linkedin: partner.linkedin || "",
+        instagram: partner.instagram || "",
+        whatsapp: partner.whatsapp || "",
       });
     }
   }, [partner]);
@@ -97,102 +103,32 @@ export const EditPartnerDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Edit Partner</DialogTitle>
         </DialogHeader>
         <div className="overflow-y-auto pr-6 scrollbar-left">
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="company_name">Company Name *</Label>
-              <Input
-                id="company_name"
-                required
-                value={formData.company_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, company_name: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                type="url"
-                value={formData.website || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, website: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="industry">Industry</Label>
-              <Input
-                id="industry"
-                value={formData.industry || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, industry: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: 'potential' | 'active' | 'inactive' | 'archived') =>
-                  setFormData({ ...formData, status: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="potential">Potential</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="priority_score">Priority Score</Label>
-              <Input
-                id="priority_score"
-                type="number"
-                min="0"
-                max="100"
-                value={formData.priority_score}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    priority_score: parseInt(e.target.value) || 0,
-                  })
-                }
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
+            <PartnerFormFields 
+              formData={formData} 
+              setFormData={setFormData} 
+            />
+
+            <PartnerDescriptionField 
+              formData={formData} 
+              setFormData={setFormData} 
+            />
+
+            <ContactInfoFields 
+              formData={formData} 
+              setFormData={setFormData} 
+            />
+
+            <PartnerFormActions 
+              loading={loading} 
+              onCancel={() => onOpenChange(false)} 
+              isCreating={false}
+            />
           </form>
         </div>
       </DialogContent>
