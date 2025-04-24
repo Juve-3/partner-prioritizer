@@ -31,10 +31,10 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+    const openAiKey = Deno.env.get('OPENAI_API_KEY');
 
-    if (!googleApiKey) {
-      throw new Error('Google API key not configured');
+    if (!openAiKey) {
+      throw new Error('OpenAI API key not configured');
     }
 
     console.log('Request received:', JSON.stringify(body, null, 2));
@@ -73,48 +73,44 @@ serve(async (req) => {
         Format the response in clear paragraphs with proper spacing. Do not use any special formatting characters.
       `;
 
-      console.log('Sending prompt to Gemini API:', prompt);
+      console.log('Sending prompt to OpenAI API:', prompt);
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${googleApiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }],
-            generationConfig: {
-              temperature: 0.7,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 1024,
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "user",
+              content: prompt
             }
-          }),
-        }
-      );
+          ],
+          temperature: 0.7,
+          max_tokens: 1024,
+        }),
+      });
 
-      console.log('Gemini API status:', response.status);
+      console.log('OpenAI API status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('Gemini API error response:', errorData);
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+        console.error('OpenAI API error response:', errorData);
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Gemini API response structure:', Object.keys(data));
+      console.log('OpenAI API response structure:', Object.keys(data));
       
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        console.error('Unexpected Gemini API response structure:', JSON.stringify(data, null, 2));
-        throw new Error('Invalid response format from Gemini API');
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error('Unexpected OpenAI API response structure:', JSON.stringify(data, null, 2));
+        throw new Error('Invalid response format from OpenAI API');
       }
 
-      const rawAnalysis = data.candidates[0].content.parts[0].text;
+      const rawAnalysis = data.choices[0].message.content;
       const formattedAnalysis = formatAnalysisText(rawAnalysis);
 
       console.log('Analysis generated successfully');
@@ -154,44 +150,40 @@ serve(async (req) => {
         Do not use any special formatting characters or symbols.
       `;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${googleApiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }],
-            generationConfig: {
-              temperature: 0.7,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 1024,
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "user",
+              content: prompt
             }
-          }),
-        }
-      );
+          ],
+          temperature: 0.7,
+          max_tokens: 1024,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('Gemini API error response:', errorData);
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+        console.error('OpenAI API error response:', errorData);
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Gemini API Response:', JSON.stringify(data, null, 2));
+      console.log('OpenAI API Response:', JSON.stringify(data, null, 2));
 
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        console.error('Unexpected Gemini API response structure:', JSON.stringify(data, null, 2));
-        throw new Error('Invalid response format from Gemini API');
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error('Unexpected OpenAI API response structure:', JSON.stringify(data, null, 2));
+        throw new Error('Invalid response format from OpenAI API');
       }
 
-      const rawAnalysis = data.candidates[0].content.parts[0].text;
+      const rawAnalysis = data.choices[0].message.content;
       const formattedAnalysis = formatAnalysisText(rawAnalysis);
 
       // Create Supabase client
