@@ -17,13 +17,13 @@ serve(async (req) => {
     const { platform, prompt } = await req.json();
     console.log('Received request:', { platform, prompt });
 
-    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
-    if (!googleApiKey) {
-      console.error('Google API key is not configured');
+    const openAiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAiKey) {
+      console.error('OpenAI API key is not configured');
       return new Response(
         JSON.stringify({
           error: 'Configuration error',
-          details: 'Google API key is not configured'
+          details: 'OpenAI API key is not configured'
         }),
         {
           status: 500,
@@ -32,15 +32,22 @@ serve(async (req) => {
       );
     }
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=' + googleApiKey, {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${openAiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `As an expert in business communication and outreach, write a professional ${platform} message. The message should be appropriate for ${platform}'s style and format, maintaining a professional yet conversational tone.
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert in business communication and outreach.'
+          },
+          {
+            role: 'user',
+            content: `Write a professional ${platform} message. The message should be appropriate for ${platform}'s style and format, maintaining a professional yet conversational tone.
 
 Context and goal for the message: ${prompt}
 
@@ -49,14 +56,14 @@ Important guidelines:
 - Be professional but friendly
 - Include a clear call to action
 - Maintain a natural conversational flow`
-          }]
-        }]
+          }
+        ]
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Gemini API error response:', errorData);
+      console.error('OpenAI API error response:', errorData);
       return new Response(
         JSON.stringify({
           error: 'API Error',
@@ -70,13 +77,13 @@ Important guidelines:
     }
 
     const data = await response.json();
-    console.log('Gemini API Response:', JSON.stringify(data, null, 2));
+    console.log('OpenAI API Response:', JSON.stringify(data, null, 2));
 
-    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+    if (!data.choices?.[0]?.message?.content) {
       return new Response(
         JSON.stringify({
           error: 'Invalid Response',
-          details: 'Unexpected response format from Gemini API'
+          details: 'Unexpected response format from OpenAI API'
         }),
         {
           status: 500,
@@ -85,7 +92,7 @@ Important guidelines:
       );
     }
 
-    const message = data.candidates[0].content.parts[0].text.trim();
+    const message = data.choices[0].message.content.trim();
 
     return new Response(
       JSON.stringify({ message }),
