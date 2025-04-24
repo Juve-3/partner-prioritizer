@@ -23,15 +23,15 @@ const OnboardingFlow = () => {
         // Check if user has already completed profile
         const { data, error } = await supabase
           .from('profiles')
-          .select('*') // Select all columns to avoid field not found errors
+          .select('*')
           .eq('id', session.user.id)
           .single();
 
         if (error) throw error;
 
-        // If profile is already completed, redirect to home
+        // If profile is already completed, redirect to partners
         if ((data as any)?.profile_completed) {
-          navigate("/");
+          navigate("/partners");
         }
       } catch (error: any) {
         toast({
@@ -59,10 +59,10 @@ const OnboardingFlow = () => {
       // Mark as completed but with empty values
       await supabase
         .from('profiles')
-        .update({ profile_completed: true } as any) // Type assertion to bypass TypeScript check
+        .update({ profile_completed: true } as any)
         .eq('id', session.user.id);
       
-      navigate("/");
+      navigate("/partners");
     } catch (error: any) {
       toast({
         variant: "destructive",

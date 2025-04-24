@@ -29,14 +29,14 @@ const Auth = () => {
           // Check if user has completed their profile
           const { data, error: profileError } = await supabase
             .from('profiles')
-            .select('*') // Select all columns to avoid field not found errors
+            .select('*')
             .eq('id', session.user.id)
             .single();
           
           if (profileError) throw profileError;
           
           if ((data as any)?.profile_completed) {
-            navigate("/");
+            navigate("/partners");
           } else {
             navigate("/onboarding");
           }
@@ -62,7 +62,7 @@ const Auth = () => {
           // Check if user has completed their profile
           const { data, error: profileError } = await supabase
             .from('profiles')
-            .select('*') // Select all columns to avoid field not found errors
+            .select('*')
             .eq('id', session.user.id)
             .single();
           
@@ -71,7 +71,7 @@ const Auth = () => {
           }
           
           if ((data as any)?.profile_completed) {
-            navigate("/");
+            navigate("/partners");
           } else {
             navigate("/onboarding");
           }
